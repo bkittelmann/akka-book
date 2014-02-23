@@ -7,7 +7,12 @@ object EventSource {
   case class UnregisterListener(listener: ActorRef)
 }
 
-trait EventSource { this: Actor =>
+trait EventSource {
+  def sendEvent[T](event: T): Unit
+  def eventSourceReceive: Actor.Receive
+}
+
+trait ProductionEventSource extends EventSource { this: Actor =>
   import EventSource._
 
   var listeners = Vector.empty[ActorRef]

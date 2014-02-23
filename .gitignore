@@ -1,0 +1,29 @@
+._*
+.ensime
+.ensime~
+.ensime_lucene/
+.history
+.idea_modules/
+.idea/
+.metadata/
+.Trashes
+*.iml
+*.orig
+*.sw
+*.swp
+*.tgz
+/.idea/
+target/
+.filestore_root
+*.sublime-project
+*.sublime-workspace
+
+# Eclipse-specific ignores
+.cache
+.classpath
+.project
+.settings/
+
+# VIM ignores
+*.swo
+*.swp

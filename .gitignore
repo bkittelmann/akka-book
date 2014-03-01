@@ -13,7 +13,6 @@
 *.swp
 *.tgz
 /.idea/
-*.sublime-project
 *.sublime-workspace
 
 # Eclipse-specific ignores

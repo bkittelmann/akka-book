@@ -1,14 +1,12 @@
 package avionics
 
-import akka.actor.{Props, Actor, ActorRef, ActorSystem}
-import akka.testkit.{TestKit, TestActorRef, ImplicitSender}
-import org.scalatest.fixture
+import akka.actor.{Props, Actor}
+import org.scalatest.fixture.{UnitFixture, WordSpec}
 import org.scalatest.Matchers
-import org.scalatest.fixture.UnitFixture
 import org.scalatest.ParallelTestExecution
 
 
-class MyActorSpec extends fixture.WordSpec
+class MyActorSpec extends WordSpec
       with Matchers
       with UnitFixture
       with ParallelTestExecution {

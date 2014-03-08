@@ -17,8 +17,8 @@ object AkkaBookBuild extends Build {
       resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
       libraryDependencies ++= Seq( 
         "org.scalatest" %% "scalatest" % "2.0" % "test",
-        "com.typesafe.akka" %% "akka-actor" % "2.2.3",
-        "com.typesafe.akka" %% "akka-testkit" % "2.2.3"
+        "com.typesafe.akka" %% "akka-actor" % "2.2.4",
+        "com.typesafe.akka" %% "akka-testkit" % "2.2.4"
       )
     )
   )

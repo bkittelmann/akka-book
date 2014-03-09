@@ -2,8 +2,8 @@
 	"folders":
 	[
 		{
+			"path": "/home/benno/lab/scala/akka-concurrency",
 			"name": "Akka Concurrency Book",
-			"path": "/home/benno/lab/scala/akka-book",
 			"file_exclude_patterns": [".ensime"],
 			"folder_exclude_patterns": ["target", ".ensime_lucene", "project/project"]
 		}

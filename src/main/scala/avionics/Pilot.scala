@@ -17,40 +17,33 @@ object Pilots {
   }
 }
 
-class Pilot extends Actor {
+class Pilot(plane: ActorRef, autopilot: ActorRef, var controls: ActorRef, altimeter: ActorRef) extends Actor {
   import Pilots._
   import Plane._
 
-  var controls: ActorRef = context.system.deadLetters
   var copilot: ActorRef = context.system.deadLetters
-  var autopilot: ActorRef = context.system.deadLetters
-
   val copilotName = context.system.settings.config.getString("akka.avionics.flightcrew.copilotName")
 
   def receive = {
     case ReadyToGo => 
-      context.parent ! GiveMeControl
-
-      copilot = resolve(context, s"../$copilotName")
-      autopilot = resolve(context, "../autopilot")
+      plane ! GiveMeControl
+      copilot = resolve(context, "../" + copilotName)
 
     case Controls(controlSurfaces) =>
       controls = controlSurfaces
   }  
 }
 
-class Copilot extends Actor {
+class Copilot(plane: ActorRef, autopilot: ActorRef, altimeter: ActorRef) extends Actor {
   import Pilots._
 
   var controls: ActorRef = context.system.deadLetters
   var pilot: ActorRef = context.system.deadLetters
-  var autopilot: ActorRef = context.system.deadLetters
 
   val pilotName = context.system.settings.config.getString("akka.avionics.flightcrew.pilotName")
 
   def receive = {
     case ReadyToGo => 
       pilot = resolve(context, s"../$pilotName")
-      autopilot = resolve(context, "../autopilot")
   }  
 }

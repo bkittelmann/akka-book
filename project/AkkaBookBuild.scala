@@ -3,6 +3,9 @@ import sbt.Keys._
 
 object AkkaBookBuild extends Build {
 
+  val akkaVersion = "2.3.0"
+  val akkaVersionOld = "2.2.4"
+
   lazy val akkaBook = Project(
     id = "akka-book",
     base = file("."),
@@ -17,8 +20,8 @@ object AkkaBookBuild extends Build {
       resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
       libraryDependencies ++= Seq( 
         "org.scalatest" %% "scalatest" % "2.0" % "test",
-        "com.typesafe.akka" %% "akka-actor" % "2.2.4",
-        "com.typesafe.akka" %% "akka-testkit" % "2.2.4"
+        "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+        "com.typesafe.akka" %% "akka-testkit" % akkaVersion
       )
     )
   )

@@ -1,6 +1,6 @@
 package avionics
 
-import akka.actor.{Actor, ActorContext, ActorRef}
+import akka.actor.{Actor, ActorContext, ActorRef, ActorRefFactory, Terminated}
 import akka.util.Timeout
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -8,13 +8,6 @@ import scala.concurrent.duration._
 object Pilots {
   case object ReadyToGo
   case object RelinquishControl
-
-  implicit val timeout = Timeout(10 seconds)
-
-  def resolve(context: ActorContext, path: String): ActorRef = {
-    val selection = context.actorSelection(path)
-    Await.result(selection.resolveOne(), timeout.duration).asInstanceOf[ActorRef]
-  }
 }
 
 class Pilot(plane: ActorRef, autopilot: ActorRef, var controls: ActorRef, altimeter: ActorRef) extends Actor {
@@ -27,7 +20,7 @@ class Pilot(plane: ActorRef, autopilot: ActorRef, var controls: ActorRef, altime
   def receive = {
     case ReadyToGo => 
       plane ! GiveMeControl
-      copilot = resolve(context, "../" + copilotName)
+      copilot = avionics.resolve(context, s"../$copilotName")
 
     case Controls(controlSurfaces) =>
       controls = controlSurfaces
@@ -36,14 +29,16 @@ class Pilot(plane: ActorRef, autopilot: ActorRef, var controls: ActorRef, altime
 
 class Copilot(plane: ActorRef, autopilot: ActorRef, altimeter: ActorRef) extends Actor {
   import Pilots._
-
-  var controls: ActorRef = context.system.deadLetters
-  var pilot: ActorRef = context.system.deadLetters
+  import Plane._
 
   val pilotName = context.system.settings.config.getString("akka.avionics.flightcrew.pilotName")
 
   def receive = {
     case ReadyToGo => 
-      pilot = resolve(context, s"../$pilotName")
+      val pilot = avionics.resolve(context, s"../$pilotName")
+      context.watch(pilot)
+    case Terminated(_) =>
+      // pilot died
+      plane ! GiveMeControl
   }  
 }

@@ -1,6 +1,8 @@
 package avionics
 
 import akka.actor.{Props, Actor, ActorSystem, ActorLogging}
+import akka.actor.SupervisorStrategy._
+import akka.actor.OneForOneStrategy
 
 import scala.concurrent.duration._
 
@@ -8,6 +10,8 @@ object Altimeter {
   // sent to the altimeter to inform it about rate-of-climb changes
   case class RateChange(amount: Float)
   case class AltitudeUpdate(altitude: Double)
+  case class CalculateAltitude(lastTick: Long, tick: Long, roc: Double)
+  case class AltitudeCalculated(newTick: Long, altitude: Double)
 
   def apply() = new Altimeter with ProductionEventSource
 }
@@ -38,6 +42,23 @@ class Altimeter extends Actor with ActorLogging {
   // periodically update altitude
   val ticker = context.system.scheduler.schedule(100 millis, 100 millis, self, Tick)
 
+  // pg.196, the risky calculation is moved into a separate, restartable actor
+  val altitudeCalculator = context.actorOf(
+    Props(
+      new Actor {
+        def receive = {
+          case CalculateAltitude(lastTick, tick, roc) => 
+            val alt = if (roc == 0)
+              0 // returning zero, comment line out to see the restarts
+              // throw new ArithmeticException("Divide by zero")
+            else 
+              ((tick - lastTick) / 60000.0) * (roc * roc) / roc
+            sender ! AltitudeCalculated(tick, alt)
+        }
+      }
+    ), "AltitudeCalculator"
+  )
+
   // internal message
   case object Tick
 
@@ -50,12 +71,21 @@ class Altimeter extends Actor with ActorLogging {
 
     case Tick => 
       val tick = System.currentTimeMillis
-      altitude = altitude + ((tick - lastTick) / 60000.0) * rateOfClimb
+      altitudeCalculator ! CalculateAltitude(lastTick, tick, rateOfClimb)
       lastTick = tick
+      
+    case AltitudeCalculated(tick, altdelta) =>
+      altitude += altdelta
       sendEvent(AltitudeUpdate(altitude))
   }
 
   def receive = eventSourceReceive orElse altimeterReceive
 
   override def postStop(): Unit = ticker.cancel
+
+  override val supervisorStrategy = OneForOneStrategy(-1, Duration.Inf, loggingEnabled=true) {
+    case _ => {
+      Restart
+    }
+  }
 }

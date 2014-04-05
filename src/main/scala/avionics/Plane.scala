@@ -13,6 +13,7 @@ object Plane {
 
 class Plane extends Actor with ActorLogging with PilotProvider with LeadFlightAttendantProvider {
   import Altimeter._
+  import HeadingIndicator._
   import EventSource._
   import IsolatedLifeCycleSupervisor._
   import Plane._
@@ -35,6 +36,7 @@ class Plane extends Actor with ActorLogging with PilotProvider with LeadFlightAt
     startPeople()
 
     actorForControls("Altimeter") ! RegisterListener(self)
+    actorForControls("HeadingIndicator") ! RegisterListener(self)
     actorForPilots(pilotName) ! ReadyToGo
     actorForPilots(copilotName) ! ReadyToGo
   }
@@ -64,6 +66,7 @@ class Plane extends Actor with ActorLogging with PilotProvider with LeadFlightAt
         
         def childStarter() = {
           val alt = context.actorOf(Props(Altimeter()), "Altimeter")
+          val hi = context.actorOf(Props(HeadingIndicator()), "HeadingIndicator")
           // context.actorOf(Props[Autopilot], "Autopilot") // ???
           context.actorOf(Props(new ControlSurfaces(alt)), "ControlSurfaces")
         }

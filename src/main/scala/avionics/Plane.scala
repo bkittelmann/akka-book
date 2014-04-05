@@ -9,6 +9,7 @@ import scala.concurrent.duration._
 object Plane {
   case object GiveMeControl
   case class Controls(controls: ActorRef)
+  case object LostControl
 }
 
 class Plane extends Actor with ActorLogging with PilotProvider with LeadFlightAttendantProvider {
@@ -48,6 +49,10 @@ class Plane extends Actor with ActorLogging with PilotProvider with LeadFlightAt
 
     case AltitudeUpdate(altitude) =>
       log.info(s"Altitude is now: $altitude")
+
+    case LostControl =>
+      log.error("Lost control!")
+      // actorForControls("Autopilot") ! TakeControl
   }
 
   def actorForControls(name: String) = {
@@ -61,6 +66,7 @@ class Plane extends Actor with ActorLogging with PilotProvider with LeadFlightAt
   }
 
   def startEquipment() {
+    val plane = self
     val controls = context.actorOf(
       Props(new IsolatedResumeSupervisor with OneForOneStrategyFactory {
         
@@ -68,7 +74,7 @@ class Plane extends Actor with ActorLogging with PilotProvider with LeadFlightAt
           val alt = context.actorOf(Props(Altimeter()), "Altimeter")
           val hi = context.actorOf(Props(HeadingIndicator()), "HeadingIndicator")
           // context.actorOf(Props[Autopilot], "Autopilot") // ???
-          context.actorOf(Props(new ControlSurfaces(alt)), "ControlSurfaces")
+          context.actorOf(Props(new ControlSurfaces(plane, alt, hi)), "ControlSurfaces")
         }
         
       }), 

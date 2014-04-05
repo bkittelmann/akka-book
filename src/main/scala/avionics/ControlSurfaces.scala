@@ -6,6 +6,9 @@ import akka.actor.{Actor, ActorRef}
 object ControlSurfaces {
   case class StickBack(amount: Float)
   case class StickForward(amount: Float)
+  case class StickLeft(amount: Float)
+  case class StickRight(amount: Float)
+  case class HasControl(somePilot: ActorRef)
 }
 
 class ControlSurfaces(altimeter: ActorRef) extends Actor {

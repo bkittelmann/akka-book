@@ -35,6 +35,10 @@ object FlyingBehavior {
 
   case class Fly(target: CourseTarget)
 
+  // let people change the calculation functions
+  case class NewElevatorCalculator(f: Calculator)
+  case class NewBankCalculator(f: Calculator)
+
   def currentMS = System.currentTimeMillis
 
   def calcElevator(target: CourseTarget, status: CourseStatus): Any = {
@@ -127,6 +131,12 @@ class FlyingBehavior(plane: ActorRef, heading: ActorRef, altimeter: ActorRef) ex
 
     case Event(Adjust, flightData: FlightData) =>
       stay using adjust(flightData)
+
+    case Event(NewBankCalculator(f), d: FlightData) =>
+      stay using d.copy(bankCalc = f)
+
+    case Event(NewElevatorCalculator(f), d: FlightData) =>
+      stay using d.copy(elevCalc = f)
   }
 
   onTransition {

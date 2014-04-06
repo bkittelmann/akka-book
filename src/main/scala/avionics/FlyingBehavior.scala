@@ -129,8 +129,8 @@ class FlyingBehavior(plane: ActorRef, heading: ActorRef, altimeter: ActorRef) ex
     case Event(AltitudeUpdate(alt), d: FlightData) =>
       stay using d.copy(status = d.status.copy(altitude = alt, altitudeSinceMS = currentMS))
 
-    case Event(Adjust, flightData: FlightData) =>
-      stay using adjust(flightData)
+    case Event(Adjust, d: FlightData) =>
+      stay using adjust(d)
 
     case Event(NewBankCalculator(f), d: FlightData) =>
       stay using d.copy(bankCalc = f)
@@ -153,6 +153,9 @@ class FlyingBehavior(plane: ActorRef, heading: ActorRef, altimeter: ActorRef) ex
   whenUnhandled {
     case Event(RelinquishControl, _) =>
       goto(Idle)
+    case Event(state, data) =>
+      //println(s"unhandled from $state, with $data")
+      stay using data
   }
 
   initialize

@@ -100,28 +100,55 @@ class Pilot(plane: ActorRef, autopilot: ActorRef, heading: ActorRef, altimeter: 
     case FeelingLikeZaphod => becomeZaphod(copilot, flyer)
   }
 
-  def becomeSober(copilot: ActorRef, flyer: ActorRef) = {
+  def tipsy(copilot: ActorRef, flyer: ActorRef): Receive = {
+    case FeelingSober => becomeSober(copilot, flyer)
+    case FeelingTipsy => // already tipsy
+    case FeelingLikeZaphod => becomeZaphod(copilot, flyer)
+  }
 
+  def zaphod(copilot: ActorRef, flyer: ActorRef): Receive = {
+    case FeelingSober => becomeSober(copilot, flyer)
+    case FeelingTipsy => becomeTipsy(copilot, flyer)
+    case FeelingLikeZaphod => // already zaphod
+  }
+
+  def idle: Receive = {
+    case _ =>
+  }
+
+  def becomeSober(copilot: ActorRef, flyer: ActorRef) = {
+    flyer ! NewElevatorCalculator(calcElevator)
+    flyer ! NewBankCalculator(calcAilerons)
+    context.become(sober(copilot, flyer))
   }
 
   def becomeTipsy(copilot: ActorRef, flyer: ActorRef) = {
-    
+    flyer ! NewElevatorCalculator(tipsyCalcElevator)
+    flyer ! NewBankCalculator(tipsyCalcAilerons)
+    context.become(tipsy(copilot, flyer))
   }
 
   def becomeZaphod(copilot: ActorRef, flyer: ActorRef) = {
-    
+    flyer ! NewElevatorCalculator(zaphodCalcElevator)
+    flyer ! NewBankCalculator(zaphodCalcAilerons)
+    context.become(zaphod(copilot, flyer))
+  }
+
+  override def unhandled(msg: Any): Unit = {
+    msg match {
+      case Transition(_, _, Flying) => 
+        setCourse(sender)
+      case Transition(_, _, Idle) =>
+        context.become(idle)
+      case Transition(_, _, _) =>
+      case CurrentState(_, _) => 
+      case m => super.unhandled(m)
+    }
   }
 
   var copilot: ActorRef = context.system.deadLetters
 
-  def receive = {
-    case ReadyToGo => 
-      plane ! GiveMeControl
-      copilot = avionics.resolve(context, s"../$copilotName")
-
-    case Controls(controlSurfaces) =>
-      // controls = controlSurfaces
-  }  
+  def receive = bootstrap
 }
 
 class Copilot(plane: ActorRef, autopilot: ActorRef, altimeter: ActorRef) extends Actor {

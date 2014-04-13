@@ -29,7 +29,7 @@ class PassengerSpec extends TestKit(ActorSystem())
 
   def newPassenger(): ActorRef = {
     seatNumber += 1
-    system.actorOf(Props(new Passenger(testActor) with TestDrinkRequestProbability), s"Bob-$seatNumber-B")
+    system.actorOf(Props(new Passenger(Some(testActor)) with TestDrinkRequestProbability), s"Bob-$seatNumber-B")
   }
  
   "Passengers" should {

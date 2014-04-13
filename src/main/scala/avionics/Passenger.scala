@@ -32,10 +32,10 @@ trait DrinkRequestProbability {
 
 trait PassengerProvider {
   def newPassenger(callButton: ActorRef): Actor = 
-    new Passenger(callButton) with DrinkRequestProbability
+    new Passenger(Some(callButton)) with DrinkRequestProbability
 }
 
-class Passenger(callButton: ActorRef) extends Actor with ActorLogging {
+class Passenger(callButton: Option[ActorRef] = None) extends Actor with ActorLogging {
   this: DrinkRequestProbability =>
 
   import Passenger._
@@ -59,7 +59,7 @@ class Passenger(callButton: ActorRef) extends Actor with ActorLogging {
   def maybeSendDrinkRequest(): Unit = {
     if (r.nextFloat() > askThreshold) {
       val drinkname = drinks(r.nextInt(drinks.length))
-      callButton ! GetDrink(drinkname)
+      callButton.get ! GetDrink(drinkname)
     }
     import ExecutionContext.Implicits.global
     scheduler.scheduleOnce(randomishTime(), self, CallForDrink)

@@ -8,7 +8,7 @@ import scala.util.{Success, Failure}
 import scala.concurrent.{ExecutionContext, Future, Await}
 
 
-class MultiExecContextSpec extends WordSpec with Matchers {
+class FuturesSpec extends WordSpec with Matchers {
   import scala.math.BigInt
   lazy val fibs: Stream[BigInt] = BigInt(0) #:: BigInt(1) #:: 
     fibs.zip(fibs.tail).map { n => n._1 + n._2 }
@@ -103,6 +103,23 @@ class MultiExecContextSpec extends WordSpec with Matchers {
       val finished = Await.result(multResultFuture, 1 second)
 
       finished should not be ('empty)
+    }
+
+    "use Future.traverse if you want to apply a mapping directly" in {
+      val futures = (1 to 20) map { i => Future(i) }
+      val sequenced = Future.sequence(futures)
+      val seqSquared = sequenced map { seq =>
+        seq map { i => i * i}
+      }
+
+      val trvSquared = Future.traverse(futures) { futurei =>
+        futurei map { i => i * i }
+      }
+
+      val squaredFromSeq = Await.result(seqSquared, 1 second)
+      val squaredFromTrv = Await.result(trvSquared, 1 second)
+
+      squaredFromSeq should be (squaredFromTrv)
     }
   }
 }

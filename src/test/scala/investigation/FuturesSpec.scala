@@ -67,7 +67,7 @@ class FuturesSpec extends WordSpec with Matchers {
       } should produce[NoSuchElementException]
     }
 
-    "future.sequence matrices example" in {
+    "future.sequence matrices example" ignore {
       // mock matrix
       case class Matrix(rows: Int, columns: Int) {
         def mult(other: Matrix): Option[Matrix] = {
@@ -120,6 +120,23 @@ class FuturesSpec extends WordSpec with Matchers {
       val squaredFromTrv = Await.result(trvSquared, 1 second)
 
       squaredFromSeq should be (squaredFromTrv)
+    }
+
+    "use Future.firstCompletedOf to select first finished one" ignore {
+      def longCalculation = Future {
+        Thread.sleep(scala.util.Random.nextInt(60))
+        "5 - from the calculation"
+      }
+
+      def cache = Future {
+        Thread.sleep(scala.util.Random.nextInt(50))
+        "5 - from the cache"
+      }
+
+      val futures = List(cache, longCalculation)
+      val result = Future.firstCompletedOf(futures) onSuccess {
+        case result => println(result)
+      }
     }
   }
 }

@@ -179,5 +179,19 @@ class FuturesSpec extends WordSpec with Matchers {
       println("Waiting for result")
       Await.result(wordFuture, 1 second) should be ("Batman")
     }
+
+    "use Future.find to locate a value in the results" ignore {
+      val letters = Vector("B", "a", "t", "m", "a", "n")
+      val futures = letters map { l => 
+        Future {
+          val sleepTime = scala.util.Random.nextInt(15)
+          Thread.sleep(sleepTime)
+          l
+        }
+      }
+      val foundFuture = Future.find(futures) { ltr => ltr.charAt(0) <= 'm' }
+      val found = Await.result(foundFuture, 1 second)
+      println("Found " + found)
+    }
   }
 }

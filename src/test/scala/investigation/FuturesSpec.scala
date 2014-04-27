@@ -159,5 +159,25 @@ class FuturesSpec extends WordSpec with Matchers {
       // first chars plus acc in sequence
       Await.result(sum, 1 second) should be ("AJBTC")
     }
+
+    "use Future.reduce to create a word" ignore {
+      val letters = Vector("B", "a", "t", "m", "a", "n")
+
+      val futures = letters map { l => 
+        Future {
+          val sleepTime = scala.util.Random.nextInt(15)
+          Thread.sleep(sleepTime)
+          println(s"$l finished after $sleepTime milliseconds")
+          l
+        }
+      }
+
+      val wordFuture = Future.reduce(futures) { (word, letter) =>
+        word + letter
+      }
+
+      println("Waiting for result")
+      Await.result(wordFuture, 1 second) should be ("Batman")
+    }
   }
 }

@@ -138,5 +138,26 @@ class FuturesSpec extends WordSpec with Matchers {
         case result => println(result)
       }
     }
+
+    "use Future.fold to add in sequence" ignore {
+      val words = Vector("Joker", "Batman", "Two Face", "Catwoman")
+
+      val futures = words map { w =>
+        Future {
+          val sleepTime = scala.util.Random.nextInt(15)
+          Thread.sleep(sleepTime)
+          println(s"$w finished after $sleepTime milliseconds")
+          w
+        }
+      }
+
+      val sum = Future.fold(futures)("A") { (acc, word) => 
+        acc + word.charAt(0)
+      }
+
+      println("Waiting for result")
+      // first chars plus acc in sequence
+      Await.result(sum, 1 second) should be ("AJBTC")
+    }
   }
 }

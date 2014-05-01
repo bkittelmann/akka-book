@@ -204,5 +204,13 @@ class FuturesSpec extends WordSpec with Matchers {
         case m => println(s"Boogers! $m")
       }
     }
+
+    "use Future.onFailure for side-effects" ignore {
+      Future { 13 } filter {
+        _ % 2 == 0
+      } onFailure {
+        case _ => println(s"Boogers!")
+      }
+    }
   }
 }

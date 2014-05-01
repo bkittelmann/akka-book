@@ -212,5 +212,14 @@ class FuturesSpec extends WordSpec with Matchers {
         case _ => println(s"Boogers!")
       }
     }
+
+    "use Future.onComplete for side-effects" in {
+      Future { scala.util.Random.nextInt(100) } filter {
+        _ % 2 == 0
+      } onComplete {
+        case Success(num) => println(s"Disco! Got a $num")
+        case Failure(_) => println(s"Boogers! That didn't work")
+      }
+    }
   }
 }

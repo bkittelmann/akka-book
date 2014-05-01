@@ -193,5 +193,16 @@ class FuturesSpec extends WordSpec with Matchers {
       val found = Await.result(foundFuture, 1 second)
       println("Found " + found)
     }
+
+    "use Future.onSuccess for side-effects" ignore {
+      Future { 13 } filter {
+        _ % 2 == 0
+      } fallbackTo Future {
+        "That didn't work"
+      } onSuccess {
+        case i: Int => println("Disco!")
+        case m => println(s"Boogers! $m")
+      }
+    }
   }
 }

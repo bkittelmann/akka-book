@@ -3,7 +3,7 @@ import sbt.Keys._
 
 object AkkaBookBuild extends Build {
 
-  val akkaVersion = "2.3.0"
+  val akkaVersion = "2.3.2"
   val akkaVersionOld = "2.2.4"
 
   lazy val akkaBook = Project(

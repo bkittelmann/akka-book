@@ -4,6 +4,9 @@ import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.actor._
 import akka.actor.SupervisorStrategy._
 import akka.routing.BroadcastRouter
+import akka.pattern.ask
+import akka.pattern.pipe
+import akka.util.Timeout
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.concurrent.duration.Duration
@@ -59,19 +62,24 @@ class PassengerSupervisor(callButton: ActorRef) extends Actor {
       }
 
       def receive = {
-        case GetChildren(forSomeone: ActorRef) => sender ! Children(context.children, forSomeone)
+        case GetChildren => sender ! context.children.toSeq
       }
     }), "PassengerSupervisor")
   }
 
+  implicit val askTimeout = Timeout(5 seconds)
+  import ExecutionContext.Implicits.global
+
   def noRouter: Receive = {
     case GetPassengerBroadcaster => {
-      val passengers = context.actorSelection("PassengerSupervisor")
-      passengers ! GetChildren(sender)
+      val destinedFor = sender
+      val actor = context.actorSelection("PassengerSupervisor")
+      (actor ? GetChildren).mapTo[Seq[ActorRef]] map {
+        passengers => (Props[Passenger].withRouter(BroadcastRouter(passengers.toList)), destinedFor)
+      } pipeTo self
     }
-    case Children(passengers, destinedFor) => {
-      // this is actually deprecated in 2.3, use BroadcastPool or BroadcastGroup
-      val router = context.actorOf(Props[Passenger].withRouter(BroadcastRouter(passengers.toList)), "Passengers")
+    case (props: Props, destinedFor: ActorRef) => {
+      val router = context.actorOf(props, "Passengers")
       destinedFor ! PassengerBroadcaster(router)
       context.become(withRouter(router))
     }

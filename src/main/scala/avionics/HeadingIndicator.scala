@@ -15,11 +15,14 @@ object HeadingIndicator {
   def apply() = new HeadingIndicator with ProductionEventSource
 }
 
-class HeadingIndicator extends Actor with ActorLogging {
+class HeadingIndicator extends Actor with ActorLogging with StatusReporter {
   this: EventSource =>
 
   import HeadingIndicator._
+  import StatusReporter._
   import context._
+
+  def currentStatus = StatusOK
 
   // internal message we use to recalculate our heading
   case object Tick
@@ -54,7 +57,7 @@ class HeadingIndicator extends Actor with ActorLogging {
       sendEvent(HeadingUpdate(heading))
   }
 
-  def receive = eventSourceReceive orElse headingIndicatorReceive
+  def receive = statusReceive orElse eventSourceReceive orElse headingIndicatorReceive
 
   override def postStop(): Unit = ticker.cancel
 }

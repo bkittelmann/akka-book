@@ -21,6 +21,7 @@ object AkkaBookBuild extends Build {
       libraryDependencies ++= Seq( 
         "org.scalatest" %% "scalatest" % "2.0" % "test",
         "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+        "com.typesafe.akka" %% "akka-remote" % akkaVersion,
         "com.typesafe.akka" %% "akka-testkit" % akkaVersion
       )
     )
